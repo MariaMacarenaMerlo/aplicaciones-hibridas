@@ -1,8 +1,11 @@
 import * as breedsService from "../../services/breeds.service.js";
+import * as originsService from "../../services/origins.service.js";
 
 export async function getBreeds(req, res) {
   try {
-    const breeds = await breedsService.getBreeds();
+    const filtros = req.query;
+
+    const breeds = await breedsService.getBreeds(filtros);
     res.status(200).json(breeds); //JSON te dice QUÉ respondió el servidor. Status Code te dice CÓMO salió la petición.
   } catch (error) {
     res.status(500).json({ message: "Error en el servidor" });
@@ -29,7 +32,24 @@ export async function saveBreed(req, res) {
   try {
     console.log("BODY RECIBIDO:", req.body);
 
-    const breed = req.body;
+    const origin = await originsService.getOriginById(req.body.originId);
+
+    //validacion:
+    if (!origin) {
+      return res.status(404).json({
+        message: "Origen no encontrado",
+      });
+    }
+
+    const breed = {
+      ...req.body,
+      origen: {
+        _id: origin._id,
+        nombre: origin.nombre,
+      },
+    };
+
+    delete breed.originId;
 
     const savedBreed = await breedsService.saveBreed(breed);
 

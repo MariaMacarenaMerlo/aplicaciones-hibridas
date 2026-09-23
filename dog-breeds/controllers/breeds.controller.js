@@ -1,5 +1,6 @@
 import * as breedService from "../services/breeds.service.js"; //Importá todo lo que exporta breeds.service.js y agrupalo bajo el nombre breedService
 import * as breedView from "../views/breeds.view.js";
+import * as originService from "../services/origins.service.js";
 
 export async function getBreeds(req, res) {
   try {
@@ -8,7 +9,10 @@ export async function getBreeds(req, res) {
       await breedService.getBreeds(filtros);
 
     res.send(breedView.createBreedsPage(breeds, page, totalPages, filtros));
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Error al obtener las razas");
+  }
 }
 
 export async function getBreedbyName(req, res) {
@@ -30,7 +34,9 @@ export async function getBreedbyId(req, res) {
 
 export async function newBreedForm(req, res) {
   try {
-    const html = breedView.newBreedForm();
+    const origins = await originService.getOrigins();
+
+    const html = breedView.newBreedForm(origins);
     res.send(html); //llamo a la funcion newBreedForm de breeds.view.js y luego res.send() para enviar la respuesta al cliente.
   } catch (error) {
     console.log(error);
@@ -51,16 +57,30 @@ export async function editBreedForm(req, res) {
   try {
     const id = req.params.id;
     const breed = await breedService.getBreedById(id);
-    const html = breedView.editBreedForm(breed);
+    const origins = await originService.getOrigins();
+
+    const html = breedView.editBreedForm(breed, origins);
     res.send(html);
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Error al editar la raza");
+  }
 }
 
 export async function editBreed(req, res) {
   try {
     const id = req.params.id;
-    const breed = req.body;
-    const editedBreed = await breedService.editBreed(id, req.body);
+    const originId = req.body.origen;
+    const origin = await originService.getOriginById(originId);
+    const breed = {
+      ...req.body,
+      origen: {
+        _id: origin._id,
+        nombre: origin.nombre,
+      },
+    };
+
+    const editedBreed = await breedService.editBreed(id, breed);
 
     const html = breedView.createDetailPage(editedBreed);
     res.send(html);

@@ -7,8 +7,8 @@ const route = express.Router();
 
 route.get("/breeds", breedsController.getBreeds);
 
-route.get("/breeds/new", breedsController.newBreedForm); //"Mostrame el formulario"
-route.post("/breeds/new", breedsController.saveBreed); //"Tomá estos datos y guardalos"
+route.get("/breeds/new", breedsController.newBreedForm); //"Formulario"
+route.post("/breeds/new", breedsController.saveBreed); //
 
 route.get("/breeds/edit/:id", breedsController.editBreedForm);
 route.post("/breeds/edit/:id", breedsController.editBreed);

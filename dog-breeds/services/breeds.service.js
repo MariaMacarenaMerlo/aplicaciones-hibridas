@@ -1,15 +1,11 @@
 //import { readFile, writeFile } from "fs/promises";
 
-import { MongoClient, ObjectId } from "mongodb";
-//CONEXION:
-const MONGO_URI =
-  "mongodb+srv://mariamerlo_db_user:UMybw0NekLpDedqX@appshibridas.72pr6lw.mongodb.net/?appName=AppsHibridas";
-
-const client = new MongoClient(MONGO_URI);
-const db = client.db("AH20232CP1");
+import { ObjectId } from "mongodb";
+import { db as conexion } from "../config/db.js";
 
 //traigo todas las razas:
 export async function getBreeds(filtros = {}) {
+  const db = conexion();
   //Paginado
   const page = parseInt(filtros?.page ?? 1); // ?. => optional chaning: pregunta si filtros existe, y si es así que me de la propiedad page/
   const limit = parseInt(filtros?.limit ?? 10);
@@ -48,6 +44,7 @@ export async function getBreeds(filtros = {}) {
 }
 
 export async function getBreedByName(name) {
+  const db = conexion();
   const breed = await db.collection("Breeds").findOne({
     nombre: name,
   });
@@ -55,6 +52,7 @@ export async function getBreedByName(name) {
 }
 
 export async function getBreedById(id) {
+  const db = conexion();
   const breed = await db.collection("Breeds").findOne({
     _id: new ObjectId(id),
   });
@@ -62,12 +60,14 @@ export async function getBreedById(id) {
 }
 
 export async function saveBreed(breed) {
+  const db = conexion();
   await db.collection("Breeds").insertOne(breed);
 
   return breed;
 }
 
 export async function editBreed(id, breed) {
+  const db = conexion();
   await db
     .collection("Breeds")
     .updateOne({ _id: new ObjectId(id) }, { $set: breed });
@@ -76,7 +76,11 @@ export async function editBreed(id, breed) {
 }
 
 export async function deleteBreed(id) {
-  const breed = await db.collection("Breeds").deleteOne({
+  const db = conexion();
+  const breed = await db.collection("Breeds").findOne({
+    _id: new ObjectId(id),
+  });
+  await db.collection("Breeds").deleteOne({
     _id: new ObjectId(id),
   });
 
@@ -84,13 +88,27 @@ export async function deleteBreed(id) {
 }
 
 export async function replaceBreed(id, breed) {
+  const db = conexion();
   await db.collection("Breeds").replaceOne({ _id: new ObjectId(id) }, breed);
 
   return getBreedById(id);
 }
 
 export async function getBreedByGroup(group) {
+  const db = conexion();
   const breeds = await db.collection("Breeds").find({ grupo: group }).toArray();
 
+  return breeds;
+}
+
+export async function getBreedsByOrigin(originId) {
+  const db = conexion();
+
+  const breeds = await db
+    .collection("Breeds")
+    .find({
+      "origen._id": new ObjectId(originId),
+    })
+    .toArray();
   return breeds;
 }
